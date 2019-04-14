@@ -2,8 +2,12 @@
   "name": "node-red-contrib-signal",
   "version": "0.0.1",
   "description": "",
-  "main": "signal.js",
   "author": "FriendlyFire",
   "license": "MIT",
-  "repository": "github:"
+  "repository": "github:Friendly0Fire/node-red-contrib-signal",
+  "node-red": {
+    "nodes": {
+      "signal-source": "signal-source.js"
+    }
+  }
 }
