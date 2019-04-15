@@ -1,26 +1,168 @@
 <script type="text/javascript">
     RED.nodes.registerType('signal-source',{
-        category: 'function',
-        color: '#a6bbcf',
+        category: 'signal',
+        color: '#3FADB5',
+        inputs: 1,
+        outputs: 1,
         defaults: {
-            name: {value:""}
+            name: { value: '' },
+            variable: { value: 'x' },
+            fct: { value: 'x' }
         },
         inputs:1,
         outputs:1,
-        icon: "file.png",
+        icon: "serial.png",
         label: function() {
             return this.name||"signal-source";
+        },
+        oneditprepare: function() {
+            var n = this;
+            n.graph = {
+                "var": "x",
+                "fct": "x",
+                "update": function() {
+                    try {
+                        var compiledFunction = math.compile(n.graph.fct);
+                        const N = 1000;
+                        n.graph.data = Array.from({length: N + 1}, function(x, i) {
+                            var scope = {};
+                            scope[n.graph.var] = i / (1.0000001 * N);
+                            return {
+                                "x": i / (1.0000001 * N),
+                                "y": Math.min(1, Math.max(compiledFunction.eval(scope), 0))
+                            };
+                        });
+                    } catch(e) {
+                        n.graph.data = [];
+                    }
+
+                    if(n.graph.svg) {
+                        if(n.graph.data.length == 0)
+                            n.graph.svg.selectAll("path").attr("stroke", "gray");
+                        else
+                            n.graph.path.selectAll("path").datum(n.graph.data).attr("stroke", "steelblue").attr("d", n.graph.line);
+                    }
+                }
+            };
+
+            function setupGraph(node) {
+                node.graph.var = node.variable;
+                node.graph.fct = node.fct;
+                node.graph.update();
+                var width = 350;
+                var margin = 30;
+                var fullWidth = width + 2 * margin;
+                node.graph.svg = d3.select('#node-input-graph')
+                    .classed("svg-container", true)
+                    .append("svg")
+                    .attr("preserveAspectRatio", "xMinYMin meet")
+                    .attr("viewBox", "0 0 " + fullWidth + " " + fullWidth)
+                    .classed("svg-content-responsive", true);
+                node.graph.x = d3.scaleLinear().rangeRound([0, width]).domain([0, 1]);
+                node.graph.y = d3.scaleLinear().rangeRound([width, 0]).domain([0, 1]);
+                node.graph.line = d3.line()
+                    .x(function(d) { return node.graph.x(d.x) })
+                    .y(function(d) { return node.graph.y(d.y) });
+                var g = node.graph.svg.append("g")
+                    .attr("transform", "translate(" + margin + ", " + (margin/2) + ")");
+                g.append("g")
+                    .attr("transform", "translate(0, " + width + ")")
+                    .call(d3.axisBottom(node.graph.x));
+                g.append("g")
+                    .call(d3.axisLeft(node.graph.y));
+                node.graph.path = g.append("g");
+                node.graph.path.append("path")
+                    .datum(node.graph.data)
+                    .attr("fill", "none")
+                    .attr("stroke", "steelblue")
+                    .attr("stroke-linejoin", "round")
+                    .attr("stroke-linecap", "round")
+                    .attr("stroke-width", 2)
+                    .attr("d", node.graph.line);
+            }
+
+            $("#node-input-variable").on("input", function(e) {
+                n.graph.var = e.target.value;
+                n.graph.update();
+            });
+            $("#node-input-fct").on("input", function(e) {
+                n.graph.fct = e.target.value;
+                n.graph.update();
+            });
+
+            $.getScript('https://d3js.org/d3.v4.min.js')
+            .done(function(data, textStatus, jqxhr) {
+                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js')
+                .done(function(data, textStatus, jqxhr) {
+                    setupGraph(n);
+                });
+            });
         }
     });
 </script>
 
 <script type="text/x-red" data-template-name="signal-source">
+    <style>
+        .svg-container {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%; /* aspect ratio */
+            vertical-align: top;
+            overflow: hidden;
+            margin: 0;
+        }
+        .svg-content-responsive {
+            display: inline-block;
+            position: absolute;
+            top: 10px;
+            left: 0;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
+    <div class="form-row" >
+        <label for="node-input-variable"><i class="icon-times"></i> Variable name</label>
+        <input type="text" id="node-input-variable" placeholder="x">
+    </div>
+    <div class="form-row">
+        <label for="node-input-fct"><i class="icon-line-chart"></i> Signal function</label>
+        <input type="text" id="node-input-fct" placeholder="x">
+    </div>
+    <div class="form-row" style="width: 90%">
+        <div id="node-input-graph"></div>
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="signal-source">
-    <p>A simple node that converts the message payloads into all lower-case characters</p>
+    <p>A multipurpose node which can transform arbitrary numeric inputs into signals shaped after common mathematical functions.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">number</span>
+        </dt>
+        <dd> the numerical value to be used for signal generation. Must be in the [0..1] range. </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Signal output
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">number</span></dt>
+                <dd>the signal derived from the input value. Always clamped to the [0..1] range.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+        <p>The function should be a mathematical expression supported by the <a href="https://mathjs.org/">math.js</a> library.</p>
+        <p>Both the input and the output of the signal source node are clamped to the [0..1] range
+            to simplify interop with other signal nodes. To perform initial/final rescaling and offsetting,
+            favor using the signal scale node.</p>
 </script>

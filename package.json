@@ -5,6 +5,9 @@
   "author": "FriendlyFire",
   "license": "MIT",
   "repository": "github:Friendly0Fire/node-red-contrib-signal",
+  "dependencies": {
+    "mathjs": "^5.9.0"
+  },
   "node-red": {
     "nodes": {
       "signal-source": "signal-source.js"
