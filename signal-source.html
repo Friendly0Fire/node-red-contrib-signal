@@ -16,86 +16,81 @@
             return this.name||"signal-source";
         },
         oneditprepare: function() {
+            const width = 250;
+            const height = 200;
+            const margin = 15;
+            const fullWidth = width + 2 * margin;
+            const fullHeight = height + 2 * margin;
+
             var n = this;
             n.graph = {
-                "var": "x",
-                "fct": "x",
+                "cfct": null,
                 "update": function() {
                     try {
-                        var compiledFunction = math.compile(n.graph.fct);
-                        const N = 1000;
-                        n.graph.data = Array.from({length: N + 1}, function(x, i) {
-                            var scope = {};
-                            scope[n.graph.var] = i / (1.0000001 * N);
-                            return {
-                                "x": i / (1.0000001 * N),
-                                "y": Math.min(1, Math.max(compiledFunction.eval(scope), 0))
-                            };
-                        });
+                        n.graph.cfct = math.compile(n.fct);
                     } catch(e) {
-                        n.graph.data = [];
+                        n.graph.cfct = null;
                     }
 
-                    if(n.graph.svg) {
-                        if(n.graph.data.length == 0)
-                            n.graph.svg.selectAll("path").attr("stroke", "gray");
-                        else
-                            n.graph.path.selectAll("path").datum(n.graph.data).attr("stroke", "steelblue").attr("d", n.graph.line);
+                    if(n.graph.cfg && n.graph.cfct) {
+                        functionPlot(n.graph.cfg);
+                        $("#node-input-graph > svg")
+                            .removeAttr("width")
+                            .removeAttr("height");
+                        d3.select("#node-input-graph > svg")
+                            .attr("preserveAspectRatio", "xMinYMin meet")
+                            .attr("viewBox", "0 0 " + fullWidth + " " + fullHeight)
+                            .classed("svg-content-responsive", true);
+                        d3.select("#node-input-graph .tip")
+                            .attr("clip-path", null);
                     }
                 }
             };
 
             function setupGraph(node) {
-                node.graph.var = node.variable;
-                node.graph.fct = node.fct;
+                node.graph.cfg = {
+                    target: '#node-input-graph',
+                    width: fullWidth,
+                    height: fullHeight,
+                    xAxis: {
+                        domain: [0, 1]
+                    },
+                    yAxis: {
+                        domain: [0, 1]
+                    },
+                    disableZoom: true,
+                    data: [{
+                        graphType: 'polyline',
+                        fn: function(s) {
+                            var scope = {};
+                            scope[node.variable] = s.x;
+                            return Math.min(1, Math.max(0, node.graph.cfct.eval(scope)));
+                        }
+                    }]
+                };
                 node.graph.update();
-                var width = 350;
-                var margin = 30;
-                var fullWidth = width + 2 * margin;
-                node.graph.svg = d3.select('#node-input-graph')
-                    .classed("svg-container", true)
-                    .append("svg")
-                    .attr("preserveAspectRatio", "xMinYMin meet")
-                    .attr("viewBox", "0 0 " + fullWidth + " " + fullWidth)
-                    .classed("svg-content-responsive", true);
-                node.graph.x = d3.scaleLinear().rangeRound([0, width]).domain([0, 1]);
-                node.graph.y = d3.scaleLinear().rangeRound([width, 0]).domain([0, 1]);
-                node.graph.line = d3.line()
-                    .x(function(d) { return node.graph.x(d.x) })
-                    .y(function(d) { return node.graph.y(d.y) });
-                var g = node.graph.svg.append("g")
-                    .attr("transform", "translate(" + margin + ", " + (margin/2) + ")");
-                g.append("g")
-                    .attr("transform", "translate(0, " + width + ")")
-                    .call(d3.axisBottom(node.graph.x));
-                g.append("g")
-                    .call(d3.axisLeft(node.graph.y));
-                node.graph.path = g.append("g");
-                node.graph.path.append("path")
-                    .datum(node.graph.data)
-                    .attr("fill", "none")
-                    .attr("stroke", "steelblue")
-                    .attr("stroke-linejoin", "round")
-                    .attr("stroke-linecap", "round")
-                    .attr("stroke-width", 2)
-                    .attr("d", node.graph.line);
+                $("#node-input-graph").addClass("svg-container", true);
+
             }
 
             $("#node-input-variable").on("input", function(e) {
-                n.graph.var = e.target.value;
+                n.variable = e.target.value;
                 n.graph.update();
             });
             $("#node-input-fct").on("input", function(e) {
-                n.graph.fct = e.target.value;
+                n.fct = e.target.value;
                 n.graph.update();
             });
 
-            $.getScript('https://d3js.org/d3.v4.min.js')
+            $.getScript('https://unpkg.com/mathjs@5.9.0/dist/math.min.js')
             .done(function(data, textStatus, jqxhr) {
-                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js')
-                .done(function(data, textStatus, jqxhr) {
-                    setupGraph(n);
-                });
+            $.getScript('https://unpkg.com/d3@3/d3.min.js')
+            .done(function(data, textStatus, jqxhr) {
+            $.getScript('https://unpkg.com/function-plot@1/dist/function-plot.js')
+            .done(function(data, textStatus, jqxhr) {
+            setupGraph(n);
+            });
+            });
             });
         }
     });
@@ -109,7 +104,7 @@
             width: 100%;
             padding-bottom: 100%; /* aspect ratio */
             vertical-align: top;
-            overflow: hidden;
+            overflow: visible;
             margin: 0;
         }
         .svg-content-responsive {
@@ -119,6 +114,7 @@
             left: 0;
             margin: 0;
             padding: 0;
+            overflow: visible;
         }
     </style>
 
