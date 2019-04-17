@@ -1,0 +1,55 @@
+<script type="text/javascript">
+    RED.nodes.registerType('signal-time',{
+        category: 'signal',
+        color: '#3FADB5',
+        inputs: 1,
+        outputs: 1,
+        defaults: {
+            min:  { value: '00:00:00' },
+            max:  { value: '23:59:59' },
+            step: { value: '00:01:00' }
+        },
+        inputs:0,
+        outputs:1,
+        icon: "serial.png",
+        label: function() {
+            return this.name||"signal-time";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="signal-time">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row" >
+        <label for="node-input-min"><i class="icon-times"></i> Start time</label>
+        <input type="time" step="5" id="node-input-min">
+    </div>
+    <div class="form-row">
+        <label for="node-input-max"><i class="icon-line-chart"></i> End time</label>
+        <input type="time" step="5" id="node-input-max">
+    </div>
+    <div class="form-row">
+        <label for="node-input-step"><i class="icon-line-chart"></i> Time step</label>
+        <input type="time" step="5" id="node-input-step">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="signal-time">
+    <p>A simple node which outputs a time value rescaled to the [0..1] domain for use within other signal nodes.</p>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Signal output
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">number</span></dt>
+                <dd>the rescaled value within the [0..1] range.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+        <p>The input is scaled and offset according to the minimum and maximum possible values given, then clamped to the [0..1] range.</p>
+</script>

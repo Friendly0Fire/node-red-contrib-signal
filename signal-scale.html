@@ -1,0 +1,58 @@
+<script type="text/javascript">
+    RED.nodes.registerType('signal-scale',{
+        category: 'signal',
+        color: '#3FADB5',
+        inputs: 1,
+        outputs: 1,
+        defaults: {
+            min: { value: '0' },
+            max: { value: '1' }
+        },
+        inputs:1,
+        outputs:1,
+        icon: "serial.png",
+        label: function() {
+            return this.name||"signal-scale";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="signal-scale">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row" >
+        <label for="node-input-min"><i class="icon-times"></i> Minimum value</label>
+        <input type="text" id="node-input-min" placeholder="0">
+    </div>
+    <div class="form-row">
+        <label for="node-input-max"><i class="icon-line-chart"></i> Maximum value</label>
+        <input type="text" id="node-input-max" placeholder="1">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="signal-scale">
+    <p>A simple node which can rescale a numerical input value for use within other signal nodes, which all assume a [0..1] domain.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">number</span>
+        </dt>
+        <dd> the numerical value to be used for signal generation. </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Signal output
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">number</span></dt>
+                <dd>the rescaled value within the [0..1] range.</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+        <p>The input is scaled and offset according to the minimum and maximum possible values given, then clamped to the [0..1] range.</p>
+</script>

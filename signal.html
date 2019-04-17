@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('signal-source',{
+    RED.nodes.registerType('signal',{
         category: 'signal',
         color: '#3FADB5',
         inputs: 1,
@@ -13,7 +13,7 @@
         outputs:1,
         icon: "serial.png",
         label: function() {
-            return this.name||"signal-source";
+            return this.name||"signal";
         },
         oneditprepare: function() {
             const width = 250;
@@ -96,7 +96,7 @@
     });
 </script>
 
-<script type="text/x-red" data-template-name="signal-source">
+<script type="text/x-red" data-template-name="signal">
     <style>
         .svg-container {
             display: inline-block;
@@ -135,7 +135,7 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="signal-source">
+<script type="text/x-red" data-help-name="signal">
     <p>A multipurpose node which can transform arbitrary numeric inputs into signals shaped after common mathematical functions.</p>
 
     <h3>Inputs</h3>
