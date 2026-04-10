@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": "github:Friendly0Fire/node-red-contrib-signal",
   "dependencies": {
-    "mathjs": "^7.5.1"
+    "mathjs": "^15.2.0"
   },
   "node-red": {
     "nodes": {
